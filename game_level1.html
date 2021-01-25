@@ -1,0 +1,455 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Cow Cow Monster!</title>
+
+<!-- Welcome to ZIM at https://zimjs.com - Code Creativity!                              -->
+<!-- ZIM runs on the HTML Canvas powered by JavaScript and CreateJS https://createjs.com -->
+<!-- ZIM is free to use. You can donate to help improve ZIM at https://zimjs.com/donate  -->
+
+<script src="https://zimjs.org/cdn/1.3.2/createjs.js"></script>
+<script src="https://zimjs.org/cdn/cat/01/zim.js"></script>
+<!-- use zimjs.com/distill for minified individual functions! -->
+
+<script>
+
+const scaling = "fit"; // this will resize to fit inside the screen dimensions
+const width = 485;
+const height = 768;
+const color = darker; // ZIM colors like green, blue, pink, faint, clear, etc.
+const outerColor = dark; // any HTML colors like "violet", "#333", etc. are fine to use
+const assets = ["bg01.png","car.png","carwsprite.png","cowMove01.png","house.png",
+                "monster.png","suitcase.png","boom.png","boom.mp3","moo.mp3",
+                "disappear.png","theme.mp3","click.mp3","board01.png","board02.png","board03.png",
+                "logo.png", "win.mp3","lose.mp3", "yay.mp3"];
+
+const path = "assets/"
+
+const frame = new Frame(scaling, width, height, color, outerColor, assets, path, new Waiter());
+
+frame.on("ready", () => { // ES6 Arrow Function - like function(){}
+    zog("ready from ZIM Frame"); // logs in console (F12 - choose console)
+
+    const stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    // set public variables here when needed
+
+    const rectangle = new Rectangle(800, 768, new GradientColor(["#597bc1","#633763"], [0,1], 0,0, 0,500)).addTo();
+    const bg01 = asset("bg01.png").pos(0,53,LEFT,BOTTOM);
+    const bg02 = new Rectangle(600,53,black).pos(0,0,LEFT,BOTTOM);
+    let scrollerBg = new Scroller({backing:bg01,speed:1,});
+
+    let score01;
+    let score02;
+    let cowBtn;
+    let monBtn;
+    let cowlabel;
+    let monlabel;
+    let label;
+    let cows;
+    let monsters;
+    let carBody;
+    let carMove;
+    let carWheel;
+    let carWheel2;
+    let transRecContainer;
+    let suitcase;
+    let transRec;
+    let logo;
+    let musicToggle;
+    let go;
+    let introBack;
+    let introBack2;
+    let restart;
+    let backingSound;
+    let winSound;
+    let loseSound;
+    let yaySound;
+    let musicNotes;
+
+    part1();
+
+    function part1(){
+
+
+        scrollerBg.pause(true,0);
+
+
+        introBack = asset("board01.png")
+                        .sca(0.5)
+                        .centerReg()
+                        .alp(0)
+                        .animate({
+                        props:{alpha:1},
+                        time:2
+                        });
+
+
+        go = new Button(100,50,"Go",grey,purple)
+                .sca(0.7)
+                .centerReg()
+                .loc(243, 440)
+                .alp(0)
+                .animate({
+                props:{alpha:1},
+                time:2
+            });
+
+
+        carMove = new Container(240,180);
+
+        yaySound = asset("yay.mp3").play();
+
+        carBody = asset("car.png").sca(.3).pos(0,59,LEFT,TOP,carMove);
+
+        carWheel = new Sprite(asset("carwsprite.png"), 8, 1).sca(.16);
+
+        carWheel2 = new Sprite(asset("carwsprite.png"), 8, 1).sca(.16);
+
+        carWheel.pos(17,0,LEFT,BOTTOM,carMove).run({time:.5, loop:true});
+
+        carWheel2.pos(175,0,LEFT,BOTTOM,carMove).run({time:.5, loop:true});
+
+        let wheelStop = function wheelStop(){
+            carWheel.pauseRun(true);
+            carWheel2.pauseRun(true);
+        }
+
+        suitcase = asset("suitcase.png").sca(.3).pos(43,10,LEFT,TOP,carMove);
+
+        transRecContainer = new Container();
+
+        transRec = new Rectangle(50,30,"rgba(255,0,0,0)")
+                        .pos(65,15,LEFT,TOP,carMove)
+
+        logo = asset("logo.png")
+                    .sca(.1)
+                    .loc(8, -125)
+                    .alp(1)
+                    .animate({
+                    props:{y:8},
+                    time:2,
+                    ease:"easeIn"
+                    });
+
+        musicToggle = new CheckBox(26,"Music", true, purple,purple).loc(380,-30);
+
+        carMove.centerReg().mov(-365,242).animate({
+            props:{x:140},
+            time:2,
+            ease:"easeIn",
+            call: wheelStop
+            });
+
+        function startScore() {
+            score01 = 0;
+            score02 = 0;
+            zog("score 1 is " + score01);
+            zog("score 2 is " + score02);
+        }
+
+        go.tap( () => {
+            startScore();
+            part2();
+        });
+
+    }
+
+
+    //part 2: Main Game.
+
+
+    function part2() {
+
+        logo.animate({
+            props:{alpha:0},
+            time:.5,
+            ease:"easeIn",
+        });
+
+        carWheel.run({time:.5, loop:true});
+        carWheel2.run({time:.5, loop:true});
+        scrollerBg.pause(false,0);
+
+
+        go.removeFrom();
+        introBack.removeFrom();
+
+
+        backingSound=asset("theme.mp3").play();
+
+        musicToggle.animate({
+                        props:{x:380,y:10},
+                        time:1,
+                        ease:"easeIn"
+                    })
+                    .change(function(e) { // this will start off
+                    if (!backingSound) {backingSound = asset("Theme.mp3").play();}
+                    else { backingSound.paused = !e.target.toggled;}
+        });
+
+        cows= new Container(250,445,1000,120)
+            .addTo()
+            .animate({
+                props:{x:-1350},
+                time:20
+            });
+        monsters= new Container(250,445,1000,120)
+            .addTo()
+            .animate({
+                props:{x:-1350},
+                time:20
+            });
+            //.outline();
+            // stage.update();
+
+        let cow = new Sprite(asset("cowMove01.png"), 13, 1).sca(.5);
+
+        loop(4, () => {
+
+            let x = rand(1,16)*61;
+            cow.clone().centerReg().pos(x, 0, LEFT, BOTTOM, cows).run({time:4, loop:true});
+            // stage.update();
+        });
+
+        let monster = asset("monster.png").sca(.5);
+        //let monster2 = monster1.clone();
+        loop(2, () => {
+            monster.x = rand(1,19)*50;
+            monster.clone().centerReg().pos(monster.x, 0, LEFT, BOTTOM, monsters).animate({
+                props:{rotation:30},
+                startPercent:50,
+                loop:true,
+                rewind:true
+            })
+        })
+
+        cowlabel = new Label({
+            text:"COW",
+            size:20,
+            color:"#cccccc",
+        });
+
+       cowBtn = new Button({
+            width:120,
+            height:40,
+            label:cowlabel,
+            backgroundColor:"#b61c21",
+            gradient:.3,
+            corner:10
+        }).pos(100,6,LEFT,BOTTOM);
+
+         monlabel = new Label({
+            text:"MONSTER",
+            size:20,
+            color:"#cccccc",
+        });
+
+         monBtn = new Button({
+            width:150,
+            height:40,
+            label:monlabel,
+            backgroundColor:"#137a30",
+            gradient:.3,
+            corner:10
+        }).pos(240,6,LEFT,BOTTOM);
+
+
+        label = new Label({
+            text:score01+score02,
+            size:20,
+            //font:"courier",
+            color:lighter,
+            backgroundColor:"#ae1e23",
+            labelWidth:100,
+            labelHeight:60,
+            //valign:middle,
+            corner:5,
+            backgroundBorderColor:"rgba(32,22,37,.7)",
+            backgroundBorderWidth:4,
+        }).pos(200,200,LEFT,TOP);
+
+        const explosion = new Sprite(asset("boom.png"), 8, 6).sca(0.5);
+        const disappear = new Sprite(asset("disappear.png"), 4, 3).sca(0.8).alp(.8);
+
+        var cowtap = function(){
+            cows.loop(cow => {
+                if (transRec.hitTestBounds(cow)) {
+                    score01 += 1;
+                    asset("moo.mp3").play();
+                    disappear.centerReg().loc(cow,carMove).mov(-20).run(1);
+                    cow.removeFrom(cows);
+                    label.text = score01+score02;
+
+                }
+            },true);
+        }
+
+        cowBtn.tap(cowtap,5,1000);
+
+        var montap = function() {
+            monsters.loop(monster => {
+                if (transRec.hitTestBounds(monster)) {
+                    score02 += 2;
+                    monster.removeFrom(monsters);
+                    asset("boom.mp3").play();
+                    explosion.pos(30,150,LEFT,BOTTOM,carMove).run(1.5);
+                    label.text = score01+score02;
+                    // stage.update();
+                }
+            },true);
+        }
+
+        monBtn.tap(montap,5,1000);
+
+        // timeEvent will check the current score and time
+
+
+        timeout(15, () => {
+            if((score01+score02) >= 8){
+                zog("Win!");
+                part3();
+            }
+            else if((score01+score02) < 8){
+                zog("Lose!");
+                part4();
+            }
+        });
+
+
+    }
+
+
+    //part 3: Win function
+
+
+    function part3() {
+
+        backingSound.stop();
+        winSound = asset("win.mp3").play();
+
+
+        const removeArray=[cowBtn, monBtn, cowlabel, monlabel,label];
+
+        for(let i=0; i<removeArray.length;i++){
+                removeArray[i].alp(1).animate({
+                props:{alpha:0},
+                time:2
+            });
+
+        }
+
+
+        cows.removeAllChildren();
+        monsters.removeAllChildren();
+
+
+
+        const next=asset("board03.png")
+                        .sca(0.5).centerReg()
+                        .alp(0)
+                        .animate({
+                        props:{alpha:1},
+                        time:1
+                         });
+
+         nextLevel = new Label({
+             text:"Next Level",
+             size:26,
+             color:"#ffffff",
+         });
+
+        const nextLvl=new Button(200,50,nextLevel,grey,purple)
+                    .centerReg()
+                    .sca(0.8)
+                    .mov(0,20)
+                    .alp(0)
+                    .animate({
+                    props:{alpha:1},
+                    time:4
+                    })
+                    .tap(()=>{
+                    zgo("game_level2.html")  //level two start
+                    });
+
+
+    stage.update();
+    }
+
+
+
+
+    //part 4: Lose function
+
+    function part4() {
+
+       backingSound.stop();
+       loseSound = asset("lose.mp3").play();
+
+
+
+        const removeArray=[cowBtn, monBtn, cowlabel, monlabel,label];
+
+        for(let i=0; i<removeArray.length;i++){
+                removeArray[i].animate({
+                props:{alpha:0},
+                time:2
+                })
+
+        }
+
+
+        cows.removeAllChildren();
+        monsters.removeAllChildren();
+
+
+        introBack2=asset("board02.png")
+                        .sca(0.5)
+                        .centerReg()
+                        .alp(0)
+                        .animate({
+                        props:{alpha:1},
+                        time:1
+                         });
+
+         tryAgain = new Label({
+             text:"Try again?",
+             size:26,
+             color:"#ffffff",
+         });
+
+        restart=new Button(200,50,tryAgain,grey,purple)
+                    .centerReg()
+                    .sca(0.8)
+                    .mov(0,20)
+                    .alp(0)
+                    .animate({
+                    props:{alpha:1},
+                    time:4
+                    })
+                    .tap(()=>{
+                        backingSound.stop();
+                        logo.addTo();
+                        musicToggle.removeFrom();
+                        introBack2.removeFrom();
+                        restart.removeFrom();
+                        carMove.removeFrom();
+                        part1()
+                     //restart game
+                    });
+
+    }
+
+    stage.update();
+
+});
+
+</script>
+
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>
